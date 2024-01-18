@@ -5,7 +5,7 @@
 // declaration of item routines (food, powerups, etc)
 
 #pragma once
-#include "Snake.h"
+#include <stdio.h>
 #include <stdbool.h>
 
 #define MAX_ITEMS   3    // maximum number of items on the board at once
@@ -29,16 +29,18 @@
 
 // minimum safe distance for food to spawn from snake head (in orthogonal direction)
 #define MIN_SAFE_DISTANCE   4
+#define HEIGHT 30
+#define WIDTH  100
 
 typedef enum ItemType {
-    FOOD        = 0,
-    BIG_FOOD    = 1,
+    FOOD = 0,
+    BIG_FOOD = 1,
     LOSE_WEIGHT = 2,
-    POISON      = 3,
-    WALL        = 4,
+    POISON = 3,
+    WALL = 4,
 
     // EXTRA_LIFE should always be the highest value - see SpawnItem() in Item.c
-    EXTRA_LIFE   = 5,
+    EXTRA_LIFE = 5,
 } ITEM_TYPE;
 
 typedef struct Item {
@@ -49,11 +51,3 @@ typedef struct Item {
 } ITEM;
 
 void UpdateFoodPosition(ITEM* foodItem);
-bool ItemTypeAppears(ITEM_TYPE type);
-int OddsOfItemType(ITEM_TYPE type);
-char ItemCharFromType(ITEM_TYPE type);
-ITEM_TYPE ItemTypeFromChar(char ch);
-
-void EatItem(SNAKE* s, ITEM_TYPE type);
-bool HitSomething(SNAKE* s, ITEM* t);
-

@@ -1,184 +1,148 @@
-// CSCN71030-23W Project II: Group 3
-// Alex Fridman, Dhyey Bhatt, Henil Patel, Jonathan Ward
-// Snake Game
-
-// input functions implementation
-
-#define _CRT_SECURE_NO_WARNINGS
-#include "Input.h"
-#include "Snake.h"
-#include <stdlib.h>
-#include <string.h>
-#include <conio.h>
-#include <ctype.h>
-
-#define MAX_STRING_TO_DOUBLE		20
-#define MAX_STRING_TO_INT		    12      // more than enough for unsigned long
-
 #include"Input.h"
 #include<stdbool.h>
+#include<string.h>
+#include<stdlib.h>
+#include<stdio.h>
+#include<conio.h>
 
-void HandleInput(SNAKE* s)
+bool HandleInput(char ch, SNAKE s)
 {
-    if (_kbhit()) // scans for input returns a non-zero if nothing
+    bool validInput = true;
+    if (s.snakeNum == 1)
     {
-
-        switch (_getch())
+        switch (ch)
         {
-        case 'w':
-            if (s->direction != SOUTH)
-                s->direction = NORTH;
+        case '/':
+            s.direction = STOPPED;
             break;
 
-        case 'd':
-            if (s->direction != WEST)
-                s->direction = EAST;
+        case UP_ARROW:
+            if (s.direction != SOUTH)
+                s.direction = NORTH;
             break;
 
-        case 's':
-            if (s->direction != NORTH)
-                s->direction = SOUTH;
+        case RIGHT_ARROW:
+            if (s.direction != WEST)
+                s.direction = EAST;
             break;
 
-        case 'a':
-            if (s->direction != EAST)
-                s->direction = WEST;
+        case DOWN_ARROW:
+            if (s.direction != NORTH)
+                s.direction = SOUTH;
             break;
 
-        case 'q':
-            s->direction = STOPPED;
+        case LEFT_ARROW:
+            if (s.direction != EAST)
+                s.direction = WEST;
             break;
 
         default:
+            // return false for invalid input characters
+            validInput = false;
             break;
         }
+    }
+    else
+    {
+        switch (ch)
+        {
+        case 'q':
+            s.direction = STOPPED;
+            break;
 
-    };
+        case 'w':
+            if (s.direction != SOUTH)
+                s.direction = NORTH;
+            break;
+
+        case 'd':
+            if (s.direction != WEST)
+                s.direction = EAST;
+            break;
+
+        case 's':
+            if (s.direction != NORTH)
+                s.direction = SOUTH;
+            break;
+
+        case 'a':
+            if (s.direction != EAST)
+                s.direction = WEST;
+            break;
+
+        default:
+            // return false for invalid input characters
+            validInput = false;
+            break;
+        }
+    }
+    // check for pause and exit buttons
+    if (ch == PAUSE_BUTTON) {
+        return true;
+    }
+    else if (ch == EXIT_BUTTON)
+        return false;
+
+    return validInput;
 }
+////////////////////////////////////////////////////
+void MoveSnake(SNAKE* s)
+{
+    switch (s->direction)
+    {
+    case NORTH:
+        s->y--;
+        break;
 
+    case EAST:
+        s->x++;
+        break;
+
+    case SOUTH:
+        s->y++;
+        break;
+
+    case WEST:
+        s->x--;
+        break;
+    }
+}
 
 void PauseGame(void)
 {
-    while (_getch() != PAUSE_BUTTON)
-        continue;
+    char input;
+    do {
+        input = getchar();
+    } while (input != 'p' && input != 'P');
 }
 
-int checkKeysPressed(int direction)
+SNAKE CreateSnake(size_t initX, size_t initY, char h, char b)
 {
-    int pressed;
 
-    {
-        pressed = getchar();
-        if (direction != pressed)
-        {
-            if (pressed == DOWN_ARROW && direction != UP_ARROW) // not letting user write the opposite 
-                direction = pressed;
-            else if (pressed == UP_ARROW && direction != DOWN_ARROW)
-                direction = pressed;
-            else if (pressed == LEFT_ARROW && direction != RIGHT_ARROW)
-                direction = pressed;
-            else if (pressed == RIGHT_ARROW && direction != LEFT_ARROW)
-                direction = pressed;
-            else if (pressed == EXIT_BUTTON || pressed == PAUSE_BUTTON);
-            // function to pause or exit game;
-        }
-    }
-    return(direction);
+    SNAKE s = { 0 };
+    s.x = initX;
+    s.y = initY;
+    s.head = h;
+    s.body = b;
+    s.length = INITIAL_LENGTH;
+    s.direction = INITIAL_DIRECTION;
+    s.lives = INITIAL_LIVES;
+    s.score = INITIAL_SCORE;
+    return s;
 }
 
-// this and  following functions are generic user input routines
-void removeNewLineFromString(char* string)
+bool HitSomething(SNAKE* s, ITEM* t)
 {
-    for (int i = 0; i < strlen(string); i++)
-    {
-        if (string[i] == '\n')
-            string[i] = '\0';
-    }
-}
-
-int countOfCharInString(char* string, char c)
-{
-    int count = 0;
-    for (int i = 0; i < strlen(string); i++)
-    {
-        if (string[i] == c)
-            count++;
-    }
-    return count;
-}
-
-bool stringIsNumeric(char* string)
-{
-    for (int i = 0; i < strlen(string); i++)
-    {
-        if (!(isdigit(string[i]) || string[i] == '.'
-            || string[i] == '-' || string[i] == '+'))
-            return false;
-    }
-
-    // should be at most 1 period, and 1 plus or minus sign at the beginning
-    int countOfPlus = countOfCharInString(string, '+');
-    int countOfMinus = countOfCharInString(string, '-');
-    if (countOfCharInString(string, '.') <= 1
-        && countOfPlus <= 1 && countOfMinus <= 1)
-    {
-        if (countOfPlus == 1 && countOfMinus == 0 && string[0] == '+')
-            return true;
-        else if (countOfMinus == 1 && countOfPlus == 0 && string[0] == '-')
-            return true;
-        else if (countOfMinus == 0 && countOfPlus == 0)
-            return true;
-        else
-            return false;
-    }
-    else
-        return false;
-}
-
-bool getStringInput(char* userInput, size_t maxLength)
-{
-    if (fgets(userInput, (int)maxLength, stdin) == NULL)
-        return false;
-    removeNewLineFromString(userInput);         // optional
-
-    if (strlen(userInput) > 0)
-        return true;
-    else
-        return false;
-}
-
-bool getIntegerInput(int* userInput)
-{
-    char input[MAX_STRING_TO_INT] = { 0 };
-    if (fgets(input, (int)MAX_STRING_TO_INT, stdin) == NULL)
-        return false;
-    removeNewLineFromString(input);
-
-    if (!stringIsNumeric(input))
-        return false;
-    else
-    {
-        *userInput = atoi(input);
+    if (s->y == HEIGHT || s->y == 1 || s->x == WIDTH || s->x == 1) {
+        s->x = WIDTH / 2;
+        s->y = HEIGHT / 2;
+        s->lives--;
         return true;
     }
-}
-
-// for collecting single char e.g. for menu inputs, and ignoring everything 
-// that comes afterward (e.g. the dangling newline)
-char returnSingleChar(void)
-{
-    char firstChar = getc(stdin);
-    char garbage = ' ';
-    while (garbage != '\n' && garbage != EOF)
-        garbage = getc(stdin);
-    return firstChar;
-}
-
-bool yes(void)
-{
-    char ch = returnSingleChar();
-    if (ch == 'y' || ch == 'Y')
+    if (s->y == t->y && s->x == t->x) {
+        s->score += 10;
         return true;
-    else
-        return false;
+    }
+
+    return false;
 }
